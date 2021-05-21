@@ -21,17 +21,17 @@ interface HasCriteria
     public function getByCriteria(Criteria $criteria);
 
     /**
-     * @param Criteria $criteria
+     * @param Criteria|\Closure $criteria
      * @return static
      */
-    public function pushCriteria(Criteria $criteria);
+    public function pushCriteria($criteria);
 
     /**
      * @param bool|mixed $value
-     * @param Criteria $criteria
+     * @param Criteria|\Closure $criteria
      * @return static
      */
-    public function pushCriteriaWhen($value, Criteria $criteria);
+    public function pushCriteriaWhen($value, $criteria);
 
     /**
      * @return static

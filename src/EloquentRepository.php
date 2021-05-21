@@ -228,10 +228,10 @@ abstract class EloquentRepository implements RepositoryInterface, HasCriteria
     }
 
     /**
-     * @param Criteria $criteria
+     * @param Criteria|\Closure $criteria
      * @return $this
      */
-    public function pushCriteria(Criteria $criteria)
+    public function pushCriteria($criteria)
     {
         $this->criteria->push($criteria);
 
@@ -240,10 +240,10 @@ abstract class EloquentRepository implements RepositoryInterface, HasCriteria
 
     /**
      * @param bool|mixed $value
-     * @param Criteria $criteria
+     * @param Criteria|\Closure $criteria
      * @return $this
      */
-    public function pushCriteriaWhen($value, Criteria $criteria)
+    public function pushCriteriaWhen($value, $criteria)
     {
         if ($value) {
             return $this->pushCriteria($criteria);
@@ -262,6 +262,10 @@ abstract class EloquentRepository implements RepositoryInterface, HasCriteria
         }
 
         foreach ($this->getCriteria() as $criteria) {
+            if (is_callable($criteria)) {
+                $criteria = $criteria();
+            }
+
             if ($criteria instanceof Criteria) {
                 $this->model = $criteria->apply($this->model, $this);
             }
