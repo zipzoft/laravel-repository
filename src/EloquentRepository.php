@@ -5,6 +5,9 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use Zipzoft\Repository\Expression\Expression;
+use Zipzoft\Repository\Expression\SkipCriteria;
+use Zipzoft\Repository\Expression\StopCriteria;
 
 abstract class EloquentRepository implements RepositoryInterface, HasCriteria
 {
@@ -262,13 +265,40 @@ abstract class EloquentRepository implements RepositoryInterface, HasCriteria
         }
 
         foreach ($this->getCriteria() as $criteria) {
+
             if (is_callable($criteria)) {
                 $criteria = $criteria();
             }
 
-            if ($criteria instanceof Criteria) {
-                $this->model = $criteria->apply($this->model, $this);
+            if (is_string($criteria) && class_exists($criteria)) {
+                $criteria = new $criteria;
             }
+
+            if ($criteria instanceof Criteria) {
+                $queryBuilder = $criteria->apply($this->model, $this);
+
+                if ($queryBuilder instanceof Expression) {
+                    if ($queryBuilder instanceof SkipCriteria) {
+                        continue;
+                    }
+
+                    if ($queryBuilder instanceof StopCriteria) {
+                        $this->model = $queryBuilder->query;
+                        break;
+                    }
+
+                    $className = get_class($queryBuilder);
+
+                    throw new InvalidArgumentException("Unsupported expression: {$className}");
+                }
+
+                $this->model = $queryBuilder;
+                continue;
+            }
+
+            $className = get_class($criteria);
+
+            throw new InvalidArgumentException("Class {$className} must instance of Criteria");
         }
 
         return $this;

@@ -19,7 +19,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Zipzoft\\Repository\\Tests\\": "tests"
+            "Zipzoft\\Repository\\Tests\\": "tests/"
         }
     },
     "authors": [
