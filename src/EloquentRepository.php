@@ -292,7 +292,7 @@ abstract class EloquentRepository implements RepositoryInterface, HasCriteria
                 continue;
             }
 
-            if ($criteria) {
+            if (is_object($criteria)) {
                 throw ExceptionFactory::invalidCriteriaInstance(get_class($criteria));
             }
         }
