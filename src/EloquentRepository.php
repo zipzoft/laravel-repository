@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Zipzoft\Repository\Expression\Expression;
 use Zipzoft\Repository\Expression\SkipCriteria;
 use Zipzoft\Repository\Expression\StopCriteria;
+use Zipzoft\Repository\Exception\Factory as ExceptionFactory;
 
 abstract class EloquentRepository implements RepositoryInterface, HasCriteria
 {
@@ -181,7 +182,7 @@ abstract class EloquentRepository implements RepositoryInterface, HasCriteria
             return $model;
         }
 
-        throw new InvalidArgumentException("Class {$this->getModelIdentifier()} must be an instance of Illuminate\\Database\\Eloquent\\Model");
+        throw ExceptionFactory::invalidModelName($this->getModelIdentifier());
     }
 
     /**
@@ -266,13 +267,7 @@ abstract class EloquentRepository implements RepositoryInterface, HasCriteria
 
         foreach ($this->getCriteria() as $criteria) {
 
-            if (is_callable($criteria)) {
-                $criteria = $criteria();
-            }
-
-            if (is_string($criteria) && class_exists($criteria)) {
-                $criteria = new $criteria;
-            }
+            $criteria = $this->resolveCriteria($criteria);
 
             if ($criteria instanceof Criteria) {
                 $queryBuilder = $criteria->apply($this->model, $this);
@@ -287,18 +282,19 @@ abstract class EloquentRepository implements RepositoryInterface, HasCriteria
                         break;
                     }
 
-                    $className = get_class($queryBuilder);
-
-                    throw new InvalidArgumentException("Unsupported expression: {$className}");
+                    throw ExceptionFactory::unsupportedCriteria(get_class($queryBuilder));
                 }
 
-                $this->model = $queryBuilder;
+                if ($queryBuilder) {
+                    $this->model = $queryBuilder;
+                }
+
                 continue;
             }
 
-            $className = get_class($criteria);
-
-            throw new InvalidArgumentException("Class {$className} must instance of Criteria");
+            if ($criteria) {
+                throw ExceptionFactory::invalidCriteriaInstance(get_class($criteria));
+            }
         }
 
         return $this;
@@ -321,5 +317,22 @@ abstract class EloquentRepository implements RepositoryInterface, HasCriteria
         $this->model = $model;
 
         return $this;
+    }
+
+    /**
+     * @param $criteria
+     * @return mixed
+     */
+    protected function resolveCriteria($criteria)
+    {
+        if (is_callable($criteria)) {
+            $criteria = $criteria();
+        }
+
+        if (is_string($criteria) && class_exists($criteria)) {
+            $criteria = new $criteria;
+        }
+
+        return $criteria;
     }
 }
