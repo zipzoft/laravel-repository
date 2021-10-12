@@ -1,6 +1,7 @@
 <?php namespace Zipzoft\Repository;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 interface RepositoryInterface
@@ -72,4 +73,9 @@ interface RepositoryInterface
      * @return mixed
      */
     public function sum(string $key);
+
+    /**
+     * @return Builder
+     */
+    public function createBuilder(): Builder;
 }

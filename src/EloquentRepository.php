@@ -2,6 +2,7 @@
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
@@ -168,6 +169,16 @@ abstract class EloquentRepository implements RepositoryInterface, HasCriteria
         $this->applyCriteria();
 
         return $this->model->sum($key);
+    }
+
+    /**
+     * @return Builder
+     */
+    public function createBuilder(): Builder
+    {
+        $this->applyCriteria();
+
+        return $this->model;
     }
 
     /**
